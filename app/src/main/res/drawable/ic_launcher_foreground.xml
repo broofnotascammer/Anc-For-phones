@@ -1,0 +1,46 @@
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:aapt="http://schemas.android.com/aapt"
+    android:width="108dp"
+    android:height="108dp"
+    android:viewportWidth="108"
+    android:viewportHeight="108">
+    
+    <!-- Headphone Arc Band -->
+    <path
+        android:pathData="M34,56 C34,42 43,32 54,32 C65,32 74,42 74,56"
+        android:strokeColor="#00E5FF"
+        android:strokeWidth="4"
+        android:strokeLineCap="round" />
+
+    <!-- Left Ear Cup -->
+    <path
+        android:pathData="M30,50 L34,50 C36,50 38,52 38,55 L38,67 C38,70 36,72 34,72 L30,72 C28,72 26,70 26,67 L26,55 C26,52 28,50 30,50 Z"
+        android:fillColor="#00E5FF" />
+
+    <!-- Right Ear Cup -->
+    <path
+        android:pathData="M74,50 L78,50 C80,50 82,52 82,55 L82,67 C82,70 80,72 78,72 L74,72 C72,72 70,70 70,67 L70,55 C70,52 72,50 74,50 Z"
+        android:fillColor="#00E5FF" />
+
+    <!-- Anti-Phase Cancellation Waveform in Center -->
+    <path
+        android:pathData="M42,61 C45,54 47,54 50,61 C53,68 55,68 58,61 C61,54 63,54 66,61"
+        android:strokeColor="#64FFDA"
+        android:strokeWidth="2.5"
+        android:strokeLineCap="round"
+        android:strokeLineJoin="round" />
+
+    <!-- Sound Wave Pulse Left -->
+    <path
+        android:pathData="M20,53 C18,57 18,65 20,69"
+        android:strokeColor="#00B0FF"
+        android:strokeWidth="2"
+        android:strokeLineCap="round" />
+
+    <!-- Sound Wave Pulse Right -->
+    <path
+        android:pathData="M88,53 C90,57 90,65 88,69"
+        android:strokeColor="#00B0FF"
+        android:strokeWidth="2"
+        android:strokeLineCap="round" />
+</vector>

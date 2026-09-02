@@ -1,0 +1,6 @@
+{
+  "name": "Software ANC",
+  "description": "Generic real-time software active noise cancellation DSP engine and audio routing lab for Android",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
