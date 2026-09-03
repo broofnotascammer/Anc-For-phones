@@ -124,3 +124,23 @@ data class HardwareDiagnosticReport(
     val metricsSummary: String,
     val timestamp: Long = System.currentTimeMillis()
 )
+
+enum class EqualizerPreset(
+    val displayName: String,
+    val description: String,
+    val gains: List<Float>
+) {
+    FLAT("Flat", "Natural balanced pass-through response", listOf(0f, 0f, 0f, 0f, 0f)),
+    BASS_CUT("Rumble Notch", "Suppresses low-frequency HVAC and engine hum", listOf(-6f, -3f, 0f, 1f, 2f)),
+    BASS_BOOST("Bass Boost", "Enhances low-end anti-noise impact", listOf(5f, 3f, 0f, -1f, -2f)),
+    VOCAL_FOCUS("Vocal Clarity", "Boosts speech presence in transparency mode", listOf(-2f, 0f, 4f, 3f, -1f)),
+    HARSHNESS_DAMPER("Harshness Damper", "Attenuates screeching high tones and fan hiss", listOf(1f, 1f, -1f, -4f, -7f)),
+    CUSTOM("Custom", "Customized user equalized profile", listOf(0f, 0f, 0f, 0f, 0f))
+}
+
+data class EqualizerState(
+    val isEnabled: Boolean = true,
+    val bandGains: List<Float> = listOf(0f, 0f, 0f, 0f, 0f),
+    val selectedPreset: EqualizerPreset = EqualizerPreset.FLAT
+)
+

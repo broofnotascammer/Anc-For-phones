@@ -8,6 +8,7 @@
 #include <mutex>
 #include <chrono>
 #include "dsp_fxlms.h"
+#include "dsp_equalizer.h"
 
 enum class NativeAncMode : int {
     EXPERIMENTAL_ANC = 0,
@@ -69,6 +70,12 @@ public:
     void setAudioSourceVolume(float volume);
     void setPlayAudioSource(bool play);
 
+    // Native Integrated Equalizer Controls
+    void setEqBandGain(int bandIndex, float gainDb);
+    void setEqBandGains(const float* gains, int count);
+    void setEqEnabled(bool enabled);
+    void resetEqualizer();
+
     void getMetrics(EngineMetricsSnapshot& outMetrics);
     void getVisualizerSnapshot(float* micOut, float* antiNoiseOut, float* mixOut, int count);
     void getSpectrum(float* spectrumOut, int numBins);
@@ -105,6 +112,7 @@ private:
     bool exclusiveMode_{true};
 
     NativeFxLMS fxlms_;
+    NativeEqualizer equalizer_;
     LockFreeAudioRingBuffer inputRingBuffer_;
 
     // Delay line for phase alignment

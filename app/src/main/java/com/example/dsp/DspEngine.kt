@@ -32,6 +32,7 @@ class DspEngine(
     private val dcBlocker = DcBlocker()
     private val bandpassFilter = BandpassFilter()
     private val fxlms = FilteredXLMS()
+    private val equalizer = EqualizerFilter()
     private val limiter = Limiter()
     private val signalGenerator = SignalGenerator()
     private val audioSourcePlayer = AudioSourcePlayer()
@@ -295,7 +296,10 @@ class DspEngine(
                 }
             }
 
-            // 5. Stage 4: Safety Limiter and Hard-clamping
+            // 5. Stage 4: Equalizer & Safety Limiter
+            for (i in 0 until framesToProcess) {
+                mixedOutputBuffer[i] = equalizer.process(mixedOutputBuffer[i])
+            }
             limiter.process(mixedOutputBuffer, limitedOutputBuffer, framesToProcess)
 
             for (i in 0 until framesToProcess) {
@@ -432,6 +436,22 @@ class DspEngine(
     fun resetFilterWeights() {
         fxlms.reset()
         _metrics.value = _metrics.value.copy(filterDiverged = false)
+    }
+
+    fun setEqBandGain(bandIndex: Int, gainDb: Float) {
+        equalizer.setBandGain(bandIndex, gainDb)
+    }
+
+    fun setEqBandGains(gains: FloatArray) {
+        equalizer.setBandGains(gains)
+    }
+
+    fun setEqEnabled(enabled: Boolean) {
+        equalizer.isEnabled = enabled
+    }
+
+    fun resetEqualizer() {
+        equalizer.reset()
     }
 
     fun getInputState(): String = inputEngine.getStateSummary()

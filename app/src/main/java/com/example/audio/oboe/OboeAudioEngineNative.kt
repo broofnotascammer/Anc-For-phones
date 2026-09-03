@@ -48,6 +48,10 @@ object OboeAudioEngineNative {
     external fun nativeResetFilter(enginePtr: Long)
     external fun nativeSetAudioSourceVolume(enginePtr: Long, volume: Float)
     external fun nativeSetPlayAudioSource(enginePtr: Long, play: Boolean)
+    external fun nativeSetEqBandGain(enginePtr: Long, bandIndex: Int, gainDb: Float)
+    external fun nativeSetEqBandGains(enginePtr: Long, gains: FloatArray)
+    external fun nativeSetEqEnabled(enginePtr: Long, enabled: Boolean)
+    external fun nativeResetEqualizer(enginePtr: Long)
 
     external fun nativeGetMetrics(enginePtr: Long, outMetricsArray: FloatArray): Boolean
     external fun nativeGetVisualizerSnapshot(

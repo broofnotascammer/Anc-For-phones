@@ -36,9 +36,11 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ChevronRight
 import androidx.compose.material.icons.filled.GraphicEq
 import androidx.compose.material.icons.filled.Headphones
+import androidx.compose.material.icons.filled.HelpOutline
 import androidx.compose.material.icons.filled.Mic
 import androidx.compose.material.icons.filled.MusicNote
 import androidx.compose.material.icons.filled.PowerSettingsNew
+import androidx.compose.material.icons.filled.School
 import androidx.compose.material.icons.filled.Speed
 import androidx.compose.material.icons.filled.Stop
 import androidx.compose.material.icons.filled.Tune
@@ -81,7 +83,9 @@ import com.example.audio.oboe.OboeSharingMode
 import com.example.data.AncMode
 import com.example.data.DspMetrics
 import com.example.data.DspParameters
+import com.example.data.EqualizerPreset
 import com.example.data.VisualizerSnapshot
+import com.example.ui.components.EqualizerCurveCanvas
 import com.example.ui.components.PeakLevelMeter
 import com.example.ui.components.RealTimeOscilloscope
 import com.example.ui.components.RealTimeSpectrum
@@ -94,6 +98,8 @@ import com.example.ui.theme.DarkBackground
 import com.example.ui.theme.DarkSurfaceVariant
 import com.example.ui.theme.MintSecondary
 import com.example.ui.theme.TextMuted
+import com.example.ui.theme.TextPrimary
+import com.example.ui.theme.TextSecondary
 import com.example.ui.theme.WaveAntiNoise
 import com.example.ui.theme.WaveMic
 import com.example.ui.theme.WaveOutput
@@ -116,6 +122,7 @@ fun MainScreen(
     val selectedHighSampleRate by viewModel.selectedHighSampleRate.collectAsState()
     val selectedSharingMode by viewModel.selectedSharingMode.collectAsState()
     val oboeTelemetry by viewModel.oboeTelemetry.collectAsState()
+    val eqState by viewModel.equalizerState.collectAsState()
 
     var showSpectrum by remember { mutableStateOf(false) }
 
@@ -155,6 +162,23 @@ fun MainScreen(
                 onToggle = {
                     if (metrics.isRunning) viewModel.stopEngine() else viewModel.startEngine()
                 }
+            )
+        }
+
+        // 1B. QUICK TUTORIAL & NOISE CANCELLATION GUIDE
+        item {
+            TactileTutorialBannerCard(
+                onOpenTutorial = { viewModel.openTutorial() }
+            )
+        }
+
+        // 1C. NATIVE INTEGRATED EQUALIZER QUICK CONTROL
+        item {
+            TactileEqualizerQuickCard(
+                eqState = eqState,
+                isOboeActive = isOboeActive,
+                onToggleEnabled = { viewModel.setEqualizerEnabled(it) },
+                onSelectPreset = { viewModel.setEqualizerPreset(it) }
             )
         }
 
@@ -1480,4 +1504,198 @@ private fun TactileOboeEngineConfigCard(
         }
     }
 }
+
+@Composable
+private fun TactileTutorialBannerCard(
+    onOpenTutorial: () -> Unit
+) {
+    Card(
+        modifier = Modifier
+            .fillMaxWidth()
+            .clickable { onOpenTutorial() }
+            .testTag("tutorial_banner_card"),
+        colors = CardDefaults.cardColors(containerColor = ObsidianCardBg),
+        shape = RoundedCornerShape(14.dp),
+        border = CardDefaults.outlinedCardBorder().copy(
+            brush = Brush.horizontalGradient(
+                listOf(CyanPrimary.copy(alpha = 0.5f), MintSecondary.copy(alpha = 0.2f))
+            )
+        )
+    ) {
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(14.dp),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.SpaceBetween
+        ) {
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(10.dp),
+                modifier = Modifier.weight(1f)
+            ) {
+                Box(
+                    modifier = Modifier
+                        .size(36.dp)
+                        .background(CyanPrimary.copy(alpha = 0.15f), CircleShape)
+                        .border(1.dp, CyanPrimary.copy(alpha = 0.4f), CircleShape),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Icon(
+                        imageVector = Icons.Default.School,
+                        contentDescription = null,
+                        tint = CyanPrimary,
+                        modifier = Modifier.size(18.dp)
+                    )
+                }
+                Column {
+                    Text(
+                        text = "HOW SOFTWARE ANC WORKS",
+                        color = TextPrimary,
+                        fontSize = 12.sp,
+                        fontWeight = FontWeight.Bold,
+                        letterSpacing = 0.5.sp
+                    )
+                    Text(
+                        text = "5-step interactive guide on acoustic phase, headphone setup & EQ",
+                        color = TextMuted,
+                        fontSize = 10.sp,
+                        lineHeight = 14.sp
+                    )
+                }
+            }
+
+            Box(
+                modifier = Modifier
+                    .background(CyanPrimary.copy(alpha = 0.2f), RoundedCornerShape(8.dp))
+                    .border(1.dp, CyanPrimary.copy(alpha = 0.5f), RoundedCornerShape(8.dp))
+                    .padding(horizontal = 10.dp, vertical = 6.dp)
+            ) {
+                Text(
+                    text = "GUIDE",
+                    color = CyanPrimary,
+                    fontSize = 11.sp,
+                    fontWeight = FontWeight.Bold
+                )
+            }
+        }
+    }
+}
+
+@Composable
+private fun TactileEqualizerQuickCard(
+    eqState: com.example.data.EqualizerState,
+    isOboeActive: Boolean,
+    onToggleEnabled: (Boolean) -> Unit,
+    onSelectPreset: (EqualizerPreset) -> Unit
+) {
+    Card(
+        modifier = Modifier
+            .fillMaxWidth()
+            .testTag("eq_quick_card"),
+        colors = CardDefaults.cardColors(containerColor = ObsidianCardBg),
+        shape = RoundedCornerShape(14.dp),
+        border = CardDefaults.outlinedCardBorder().copy(
+            brush = androidx.compose.ui.graphics.SolidColor(ObsidianCardBorder)
+        )
+    ) {
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(14.dp),
+            verticalArrangement = Arrangement.spacedBy(10.dp)
+        ) {
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(8.dp)
+                ) {
+                    Box(
+                        modifier = Modifier
+                            .size(30.dp)
+                            .background(MintSecondary.copy(alpha = 0.15f), CircleShape)
+                            .border(1.dp, MintSecondary.copy(alpha = 0.3f), CircleShape),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Icon(
+                            imageVector = Icons.Default.Tune,
+                            contentDescription = null,
+                            tint = MintSecondary,
+                            modifier = Modifier.size(16.dp)
+                        )
+                    }
+                    Column {
+                        Text(
+                            text = "NATIVE 5-BAND EQUALIZER",
+                            color = TextPrimary,
+                            fontSize = 12.sp,
+                            fontWeight = FontWeight.Bold,
+                            letterSpacing = 0.5.sp
+                        )
+                        Text(
+                            text = if (isOboeActive) "C++ Biquad Filter Engine" else "JVM Filter Engine",
+                            color = TextMuted,
+                            fontSize = 9.sp
+                        )
+                    }
+                }
+
+                Switch(
+                    checked = eqState.isEnabled,
+                    onCheckedChange = onToggleEnabled,
+                    colors = SwitchDefaults.colors(
+                        checkedThumbColor = Color.Black,
+                        checkedTrackColor = MintSecondary,
+                        uncheckedThumbColor = TextMuted,
+                        uncheckedTrackColor = DarkSurfaceVariant
+                    ),
+                    modifier = Modifier.testTag("quick_eq_master_switch")
+                )
+            }
+
+            // Real-time mini response curve
+            EqualizerCurveCanvas(
+                bandGains = eqState.bandGains,
+                isEnabled = eqState.isEnabled,
+                modifier = Modifier.height(90.dp)
+            )
+
+            // Preset fast-select chips
+            LazyRow(
+                horizontalArrangement = Arrangement.spacedBy(6.dp),
+                modifier = Modifier.fillMaxWidth()
+            ) {
+                items(EqualizerPreset.values()) { preset ->
+                    val isSelected = eqState.selectedPreset == preset
+                    Box(
+                        modifier = Modifier
+                            .clip(RoundedCornerShape(6.dp))
+                            .background(
+                                if (isSelected) MintSecondary.copy(alpha = 0.2f) else DarkSurfaceVariant
+                            )
+                            .border(
+                                1.dp,
+                                if (isSelected) MintSecondary else Color.Transparent,
+                                RoundedCornerShape(6.dp)
+                            )
+                            .clickable { onSelectPreset(preset) }
+                            .padding(horizontal = 8.dp, vertical = 5.dp)
+                    ) {
+                        Text(
+                            text = preset.displayName,
+                            color = if (isSelected) MintSecondary else TextMuted,
+                            fontSize = 10.sp,
+                            fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Normal
+                        )
+                    }
+                }
+            }
+        }
+    }
+}
+
 

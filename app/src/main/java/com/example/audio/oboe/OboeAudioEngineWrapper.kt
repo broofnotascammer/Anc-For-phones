@@ -266,6 +266,46 @@ class OboeAudioEngineWrapper(
         }
     }
 
+    fun setEqBandGain(bandIndex: Int, gainDb: Float) {
+        if (isNativeAvailable && enginePtr != 0L) {
+            try {
+                OboeAudioEngineNative.nativeSetEqBandGain(enginePtr, bandIndex, gainDb)
+            } catch (e: Throwable) {
+                Log.e(TAG, "Failed setting EQ band $bandIndex: ${e.message}")
+            }
+        }
+    }
+
+    fun setEqBandGains(gains: FloatArray) {
+        if (isNativeAvailable && enginePtr != 0L) {
+            try {
+                OboeAudioEngineNative.nativeSetEqBandGains(enginePtr, gains)
+            } catch (e: Throwable) {
+                Log.e(TAG, "Failed setting EQ band gains: ${e.message}")
+            }
+        }
+    }
+
+    fun setEqEnabled(enabled: Boolean) {
+        if (isNativeAvailable && enginePtr != 0L) {
+            try {
+                OboeAudioEngineNative.nativeSetEqEnabled(enginePtr, enabled)
+            } catch (e: Throwable) {
+                Log.e(TAG, "Failed setting EQ enabled: ${e.message}")
+            }
+        }
+    }
+
+    fun resetEqualizer() {
+        if (isNativeAvailable && enginePtr != 0L) {
+            try {
+                OboeAudioEngineNative.nativeResetEqualizer(enginePtr)
+            } catch (e: Throwable) {
+                Log.e(TAG, "Failed resetting EQ: ${e.message}")
+            }
+        }
+    }
+
     private fun startPolling() {
         pollingJob?.cancel()
         pollingJob = scope.launch {

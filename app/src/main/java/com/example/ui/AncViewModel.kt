@@ -14,6 +14,8 @@ import com.example.data.AncMode
 import com.example.data.DeviceSelectionMode
 import com.example.data.DspMetrics
 import com.example.data.DspParameters
+import com.example.data.EqualizerPreset
+import com.example.data.EqualizerState
 import com.example.data.HardwareDiagnosticReport
 import com.example.data.LatencyCalibrationResult
 import com.example.data.TestSignalType
@@ -125,6 +127,12 @@ class AncViewModel(application: Application) : AndroidViewModel(application) {
     private val _isCalibrating = MutableStateFlow(false)
     val isCalibrating: StateFlow<Boolean> = _isCalibrating.asStateFlow()
 
+    private val _equalizerState = MutableStateFlow(EqualizerState())
+    val equalizerState: StateFlow<EqualizerState> = _equalizerState.asStateFlow()
+
+    private val _showTutorial = MutableStateFlow(false)
+    val showTutorial: StateFlow<Boolean> = _showTutorial.asStateFlow()
+
     init {
         deviceMonitor = DeviceMonitor(application, deviceManager) {
             if (metrics.value.isRunning) {
@@ -177,6 +185,10 @@ class AncViewModel(application: Application) : AndroidViewModel(application) {
             oboeEngine.setAudioSourceVolume(params.audioSourceVolume)
             oboeEngine.setPlayAudioSource(params.playAudioSourceTrack)
 
+            val eq = _equalizerState.value
+            oboeEngine.setEqEnabled(eq.isEnabled)
+            oboeEngine.setEqBandGains(eq.bandGains.toFloatArray())
+
             oboeEngine.start(
                 sampleRate = _selectedHighSampleRate.value,
                 sharingMode = _selectedSharingMode.value,
@@ -184,6 +196,9 @@ class AncViewModel(application: Application) : AndroidViewModel(application) {
                 outputDevice = selectedOutput.value
             )
         } else {
+            val eq = _equalizerState.value
+            dspEngine.setEqEnabled(eq.isEnabled)
+            dspEngine.setEqBandGains(eq.bandGains.toFloatArray())
             dspEngine.start()
         }
     }
@@ -368,6 +383,67 @@ class AncViewModel(application: Application) : AndroidViewModel(application) {
             dspState = "Taps: ${_dspParameters.value.filterTaps}, Mu: ${_dspParameters.value.stepSizeMu}, Delay: ${_dspParameters.value.audioDelayMs}ms, Diverged: ${m.filterDiverged}",
             metricsSummary = metricsStr
         )
+    }
+
+    // --- Equalizer Controls ---
+    fun setEqualizerEnabled(enabled: Boolean) {
+        _equalizerState.value = _equalizerState.value.copy(isEnabled = enabled)
+        if (_isOboeActive.value) {
+            oboeEngine.setEqEnabled(enabled)
+        } else {
+            dspEngine.setEqEnabled(enabled)
+        }
+    }
+
+    fun setEqualizerBandGain(bandIndex: Int, gainDb: Float) {
+        val currentGains = _equalizerState.value.bandGains.toMutableList()
+        if (bandIndex in currentGains.indices) {
+            currentGains[bandIndex] = gainDb.coerceIn(-15f, 15f)
+            _equalizerState.value = _equalizerState.value.copy(
+                bandGains = currentGains,
+                selectedPreset = EqualizerPreset.CUSTOM
+            )
+            if (_isOboeActive.value) {
+                oboeEngine.setEqBandGain(bandIndex, gainDb)
+            } else {
+                dspEngine.setEqBandGain(bandIndex, gainDb)
+            }
+        }
+    }
+
+    fun setEqualizerPreset(preset: EqualizerPreset) {
+        if (preset == EqualizerPreset.CUSTOM) {
+            _equalizerState.value = _equalizerState.value.copy(selectedPreset = preset)
+            return
+        }
+        val newGains = preset.gains
+        _equalizerState.value = _equalizerState.value.copy(
+            bandGains = newGains,
+            selectedPreset = preset
+        )
+        if (_isOboeActive.value) {
+            oboeEngine.setEqBandGains(newGains.toFloatArray())
+        } else {
+            dspEngine.setEqBandGains(newGains.toFloatArray())
+        }
+    }
+
+    fun resetEqualizer() {
+        setEqualizerPreset(EqualizerPreset.FLAT)
+        if (_isOboeActive.value) {
+            oboeEngine.resetEqualizer()
+        } else {
+            dspEngine.resetEqualizer()
+        }
+    }
+
+    // --- Tutorial Controls ---
+    fun openTutorial() {
+        _showTutorial.value = true
+    }
+
+    fun closeTutorial() {
+        _showTutorial.value = false
     }
 
     override fun onCleared() {

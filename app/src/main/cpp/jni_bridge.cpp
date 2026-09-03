@@ -112,6 +112,39 @@ JNI_METHOD(void, nativeSetPlayAudioSource)(JNIEnv* env, jobject thiz, jlong engi
     }
 }
 
+JNI_METHOD(void, nativeSetEqBandGain)(JNIEnv* env, jobject thiz, jlong enginePtr, jint bandIndex, jfloat gainDb) {
+    auto* engine = reinterpret_cast<OboeAudioEngine*>(enginePtr);
+    if (engine) {
+        engine->setEqBandGain(bandIndex, gainDb);
+    }
+}
+
+JNI_METHOD(void, nativeSetEqBandGains)(JNIEnv* env, jobject thiz, jlong enginePtr, jfloatArray gains) {
+    auto* engine = reinterpret_cast<OboeAudioEngine*>(enginePtr);
+    if (engine && gains) {
+        jsize len = env->GetArrayLength(gains);
+        jfloat* buf = env->GetFloatArrayElements(gains, nullptr);
+        if (buf) {
+            engine->setEqBandGains(buf, len);
+            env->ReleaseFloatArrayElements(gains, buf, JNI_ABORT);
+        }
+    }
+}
+
+JNI_METHOD(void, nativeSetEqEnabled)(JNIEnv* env, jobject thiz, jlong enginePtr, jboolean enabled) {
+    auto* engine = reinterpret_cast<OboeAudioEngine*>(enginePtr);
+    if (engine) {
+        engine->setEqEnabled(enabled == JNI_TRUE);
+    }
+}
+
+JNI_METHOD(void, nativeResetEqualizer)(JNIEnv* env, jobject thiz, jlong enginePtr) {
+    auto* engine = reinterpret_cast<OboeAudioEngine*>(enginePtr);
+    if (engine) {
+        engine->resetEqualizer();
+    }
+}
+
 JNI_METHOD(jboolean, nativeGetMetrics)(
     JNIEnv* env,
     jobject thiz,

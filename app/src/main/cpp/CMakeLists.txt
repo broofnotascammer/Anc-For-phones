@@ -10,6 +10,7 @@ add_library(oboe_anc_engine SHARED
     jni_bridge.cpp
     oboe_engine.cpp
     dsp_fxlms.cpp
+    dsp_equalizer.cpp
 )
 
 target_include_directories(oboe_anc_engine PRIVATE

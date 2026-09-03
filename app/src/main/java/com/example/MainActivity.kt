@@ -30,10 +30,12 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Analytics
 import androidx.compose.material.icons.filled.GraphicEq
 import androidx.compose.material.icons.filled.Headphones
+import androidx.compose.material.icons.filled.HelpOutline
 import androidx.compose.material.icons.filled.Mic
 import androidx.compose.material.icons.filled.Security
 import androidx.compose.material.icons.filled.Speed
 import androidx.compose.material.icons.filled.Tune
+import androidx.compose.material.icons.filled.VolumeUp
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
@@ -41,6 +43,7 @@ import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.CenterAlignedTopAppBar
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.NavigationBar
 import androidx.compose.material3.NavigationBarItem
@@ -76,7 +79,9 @@ import com.example.ui.CalibrationScreen
 import com.example.ui.DevicesScreen
 import com.example.ui.DiagnosticsScreen
 import com.example.ui.DspSettingsScreen
+import com.example.ui.EqualizerScreen
 import com.example.ui.MainScreen
+import com.example.ui.components.TutorialDialog
 import com.example.ui.theme.AncActiveGreen
 import com.example.ui.theme.AncEmergencyRed
 import com.example.ui.theme.CyanPrimary
@@ -91,9 +96,10 @@ import com.example.ui.theme.TextPrimary
 
 enum class ScreenRoute(val route: String, val title: String, val icon: ImageVector) {
     DASHBOARD("dashboard", "ANC", Icons.Default.GraphicEq),
+    EQUALIZER("equalizer", "EQ", Icons.Default.Tune),
     DEVICES("devices", "Devices", Icons.Default.Headphones),
     CALIBRATION("calibration", "Calibrate", Icons.Default.Speed),
-    DSP_TUNING("dsp_tuning", "DSP", Icons.Default.Tune),
+    DSP_TUNING("dsp_tuning", "DSP", Icons.Default.VolumeUp),
     DIAGNOSTICS("diagnostics", "System", Icons.Default.Analytics)
 }
 
@@ -122,6 +128,7 @@ fun MainApp(viewModel: AncViewModel) {
     val currentRoute = navBackStackEntry?.destination?.route ?: ScreenRoute.DASHBOARD.route
 
     val metrics by viewModel.metrics.collectAsState()
+    val showTutorial by viewModel.showTutorial.collectAsState()
 
     var hasMicPermission by remember {
         mutableStateOf(
@@ -191,6 +198,18 @@ fun MainApp(viewModel: AncViewModel) {
                                 )
                             }
                         }
+                    }
+                },
+                actions = {
+                    IconButton(
+                        onClick = { viewModel.openTutorial() },
+                        modifier = Modifier.testTag("app_bar_tutorial_button")
+                    ) {
+                        Icon(
+                            imageVector = Icons.Default.HelpOutline,
+                            contentDescription = "Tutorial & Guide",
+                            tint = CyanPrimary
+                        )
                     }
                 },
                 colors = TopAppBarDefaults.centerAlignedTopAppBarColors(
@@ -319,6 +338,9 @@ fun MainApp(viewModel: AncViewModel) {
                         }
                     )
                 }
+                composable(ScreenRoute.EQUALIZER.route) {
+                    EqualizerScreen(viewModel = viewModel)
+                }
                 composable(ScreenRoute.DEVICES.route) {
                     DevicesScreen(viewModel = viewModel)
                 }
@@ -331,6 +353,13 @@ fun MainApp(viewModel: AncViewModel) {
                 composable(ScreenRoute.DIAGNOSTICS.route) {
                     DiagnosticsScreen(viewModel = viewModel)
                 }
+            }
+
+            // Interactive Step-by-Step Tutorial Overlay
+            if (showTutorial) {
+                TutorialDialog(
+                    onDismiss = { viewModel.closeTutorial() }
+                )
             }
         }
     }

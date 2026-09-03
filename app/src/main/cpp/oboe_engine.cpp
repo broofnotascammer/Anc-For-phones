@@ -178,6 +178,7 @@ bool OboeAudioEngine::openPlaybackStream() {
         playbackStream_->setBufferSizeInFrames(burst * 2);
     }
     sampleRate_ = playbackStream_->getSampleRate();
+    equalizer_.setSampleRate(sampleRate_);
 
     LOGI("Playback stream opened: SR=%d, Burst=%d, BufferSize=%d, Format=%s, API=%s",
          sampleRate_, burst, playbackStream_->getBufferSizeInFrames(),
@@ -383,6 +384,9 @@ void OboeAudioEngine::processAudioBlock(float* outData, int numFrames) {
             outputMono += synthSample;
         }
 
+        // Apply Native 5-Band Equalizer (Biquad Peak/Shelf Filters)
+        outputMono = equalizer_.processSample(outputMono);
+
         // Hard limiter safeguard to prevent digital clipping / ear fatigue
         outputMono = std::clamp(outputMono, -0.98f, 0.98f);
 
@@ -510,6 +514,22 @@ void OboeAudioEngine::setAudioSourceVolume(float volume) {
 
 void OboeAudioEngine::setPlayAudioSource(bool play) {
     playAudioSource_.store(play, std::memory_order_relaxed);
+}
+
+void OboeAudioEngine::setEqBandGain(int bandIndex, float gainDb) {
+    equalizer_.setBandGain(bandIndex, gainDb);
+}
+
+void OboeAudioEngine::setEqBandGains(const float* gains, int count) {
+    equalizer_.setBandGains(gains, count);
+}
+
+void OboeAudioEngine::setEqEnabled(bool enabled) {
+    equalizer_.setEnabled(enabled);
+}
+
+void OboeAudioEngine::resetEqualizer() {
+    equalizer_.reset();
 }
 
 void OboeAudioEngine::onErrorBeforeClose(oboe::AudioStream* stream, oboe::Result error) {
